@@ -20,10 +20,12 @@ async function run() {
         await client.connect()
         const database = client.db('Jerins_Parlour');
         const appointmentCollection = database.collection('appointments');
+        const usersCollection = database.collection('users');
         const commentCollection = database.collection('comments');
         const serviceCollection = database.collection('services');
         console.log('your database running')
 
+        // POST
         //post comment data to comment and insert data to mongodb
         app.post('/comment', async (req, res) => {
             const comment = req.body;
@@ -41,6 +43,15 @@ async function run() {
             res.json(result)
             // res.json({message:'sakilhere'})
         })
+        app.post('/service', async (req, res) => {
+            const service = req.body;
+            const result = await serviceCollection.insertOne(service);
+            res.json(result)
+            // res.json({message:'sakilhere'})
+        })
+
+        // GET
+
         //get all the comments 
         app.get('/comment', async (req, res) => {
             const cursor = commentCollection.find({});
@@ -48,30 +59,64 @@ async function run() {
             // console.log(comments)
             res.json(comments);
         })
-          //get all the services 
-          app.get('/service', async (req, res) => {
+        //get all the services 
+        app.get('/service', async (req, res) => {
             const cursor = serviceCollection.find({});
             const services = await cursor.toArray();
             // console.log(comments)
             res.json(services);
         })
-        
-          //get all the appointment 
-          app.get('/appointment', async (req, res) => {
+
+        //get all the appointment 
+        app.get('/appointment', async (req, res) => {
             const cursor = appointmentCollection.find({});
             const services = await cursor.toArray();
             // console.log(comments)
             res.json(services);
         })
-          //get current user appointment 
-          app.get('/appointmentUser', async (req, res) => {
+        //get current user appointment 
+        app.get('/appointmentUser', async (req, res) => {
             const email = req.query.email;
-            const query= {email:email}
+            const query = { email: email }
             const cursor = appointmentCollection.find(query);
             const services = await cursor.toArray();
             // console.log(comments)
             res.json(services);
         })
+        // check user admin or not
+        app.get('/users/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            let isAdmin = false;
+            if (user?.role === 'admin') {
+                isAdmin = true;
+            }
+            res.json({ isAdmin: isAdmin })
+        })
+
+
+        // put
+        // if user exist update user else insertUser
+        app.put('/users', async (req, res) => {
+            const user = req.body;
+            // console.log(user)
+            const filer = { email: user.email };
+            const option = { upsert: true };
+            const updateDoc = { $set: user };
+            const result = await usersCollection.updateOne(filer, updateDoc, option);
+            res.json(result)
+        })
+        // make admin
+        app.put('/users/admin', async (req, res) => {
+            const user = req.body;
+            const filter = { email: user.email };
+            const updateDoc = { $set: { role: 'admin' } };
+            const result = await usersCollection.updateOne(filter, updateDoc);
+            res.json(result);
+
+        })
+
 
 
     } finally {
