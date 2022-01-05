@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
+const ObjectId = require('mongodb').ObjectId;
 require("dotenv").config();
 const port = process.env.PORT || 5000
 
@@ -39,7 +40,7 @@ async function run() {
         app.post('/appointment', async (req, res) => {
             const appointment = req.body;
             const result = await appointmentCollection.insertOne(appointment);
-            console.log(appointment)
+            // console.log(appointment)
             res.json(result)
             // res.json({message:'sakilhere'})
         })
@@ -96,6 +97,8 @@ async function run() {
         })
 
 
+
+
         // put
         // if user exist update user else insertUser
         app.put('/users', async (req, res) => {
@@ -113,7 +116,20 @@ async function run() {
             const filter = { email: user.email };
             const updateDoc = { $set: { role: 'admin' } };
             const result = await usersCollection.updateOne(filter, updateDoc);
+            // console.log('in server',result,req.body)
             res.json(result);
+
+        })
+        //  changeAction according to need
+        app.put('/appointment/action', async (req, res) => {
+            const user = req.body;
+            // console.log(user)
+            const filter = {_id: ObjectId(user.id) };
+            const updateDoc = { $set: { action: user.action } };
+            const result = await appointmentCollection.updateOne(filter, updateDoc);
+            res.json(result);
+            // res.json({message:'sakilhere'})
+
 
         })
 
