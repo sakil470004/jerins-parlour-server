@@ -20,8 +20,8 @@ async function run() {
         await client.connect()
         const database = client.db('Jerins_Parlour');
         const appointmentCollection = database.collection('appointments');
-        const commentCollection = database.collection('comment');
-        const serviceCollection = database.collection('service');
+        const commentCollection = database.collection('comments');
+        const serviceCollection = database.collection('services');
         console.log('your database running')
 
         //post comment data to comment and insert data to mongodb
@@ -30,16 +30,49 @@ async function run() {
             const result = await commentCollection.insertOne(comment);
 
             res.json(result)
+
             // res.json({message:'sakilhere'})
         })
-        //get all the comment 
+        // post a appointment data
+        app.post('/appointment', async (req, res) => {
+            const appointment = req.body;
+            const result = await appointmentCollection.insertOne(appointment);
+            console.log(appointment)
+            res.json(result)
+            // res.json({message:'sakilhere'})
+        })
+        //get all the comments 
         app.get('/comment', async (req, res) => {
             const cursor = commentCollection.find({});
             const comments = await cursor.toArray();
-            console.log(comments)
-            // console.log(date, req.query.date)
+            // console.log(comments)
             res.json(comments);
         })
+          //get all the services 
+          app.get('/service', async (req, res) => {
+            const cursor = serviceCollection.find({});
+            const services = await cursor.toArray();
+            // console.log(comments)
+            res.json(services);
+        })
+        
+          //get all the appointment 
+          app.get('/appointment', async (req, res) => {
+            const cursor = appointmentCollection.find({});
+            const services = await cursor.toArray();
+            // console.log(comments)
+            res.json(services);
+        })
+          //get current user appointment 
+          app.get('/appointmentUser', async (req, res) => {
+            const email = req.query.email;
+            const query= {email:email}
+            const cursor = appointmentCollection.find(query);
+            const services = await cursor.toArray();
+            // console.log(comments)
+            res.json(services);
+        })
+
 
     } finally {
         // await client.close()
